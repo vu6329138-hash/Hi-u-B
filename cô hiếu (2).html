@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tri Ân Cô Hiếu - 20/10</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #081c15;
+            font-family: 'Playfair Display', serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* Bao thư tương tác */
+        .envelope-wrapper {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .envelope-wrapper:hover {
+            transform: scale(1.05);
+        }
+        .envelope-box {
+            font-size: 6.5rem;
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.6));
+            animation: float 2s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        .open-hint {
+            margin-top: 15px;
+            background: rgba(212, 175, 55, 0.95);
+            color: #081c15;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        /* Khung Thiệp chính */
+        .card {
+            display: none;
+            width: 100%;
+            max-width: 620px;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 20px;
+            padding: 55px 45px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            border: 3px solid #d4af37;
+            position: relative;
+            z-index: 10;
+            animation: fadeInCard 1.2s ease-out forwards;
+        }
+        @keyframes fadeInCard {
+            from { opacity: 0; transform: translateY(40px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .sub-title {
+            text-align: center;
+            font-size: 0.95rem;
+            letter-spacing: 4px;
+            color: #2d6a4f;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .main-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.2rem;
+            color: #b08d57;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .divider {
+            width: 90px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #2d6a4f, transparent);
+            margin: 0 auto 25px;
+        }
+        .content {
+            color: #1b4332;
+            font-size: 1.15rem;
+            line-height: 2.1;
+            text-align: justify;
+            margin-bottom: 30px;
+            font-style: italic;
+            min-height: 140px;
+        }
+        .footer {
+            text-align: right;
+            font-weight: bold;
+            color: #2d6a4f;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starCanvas"></canvas>
+
+    <!-- Bao thư bấm mở -->
+    <div class="envelope-wrapper" id="envelope" onclick="openLetter()">
+        <div class="envelope-box">✉️</div>
+        <div class="open-hint">🌿 Nhấp vào đây để mở thư tri ân 🌿</div>
+    </div>
+
+    <!-- Nội dung Thiệp -->
+    <div class="card" id="card">
+        <div class="sub-title">🌿 Mừng Ngày 20 / 10 🌿</div>
+        <div class="main-title">Kính Chúc Cô Hiếu</div>
+        <div class="divider"></div>
+        <div class="content" id="typed-text"></div>
+        <div class="footer">— Kính chúc Cô bình an & vạn sự cát tường —</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('starCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let stars = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class GlowingStar {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2.5 + 0.5;
+                this.alpha = Math.random();
+                this.speedAlpha = Math.random() * 0.02 + 0.005;
+            }
+            update() {
+                this.alpha += this.speedAlpha;
+                if (this.alpha > 1 || this.alpha < 0) this.speedAlpha = -this.speedAlpha;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(212, 175, 55, ${this.alpha})`;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#d4af37';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        for (let i = 0; i < 120; i++) stars.push(new GlowingStar());
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            stars.forEach(s => { s.update(); s.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Lời chúc gõ chữ nghệ thuật
+        const fullContent = "Nhân ngày Phụ nữ Việt Nam 20/10, em xin được bày tỏ lòng biết ơn sâu sắc nhất tới cô. Cảm ơn cô đã luôn tận tụy, bao dung và thắp sáng ngọn lửa tri thức cho chúng em trên bước đường tương lai. Kính chúc cô luôn dồi dào sức khỏe, an khang và giữ mãi niềm hạnh phúc trọn vẹn!";
+        let charIndex = 0;
+
+        function openLetter() {
+            document.getElementById('envelope').style.display = 'none';
+            document.getElementById('card').style.display = 'block';
+
+            function typeText() {
+                if (charIndex < fullContent.length) {
+                    document.getElementById('typed-text').innerHTML += fullContent.charAt(charIndex);
+                    charIndex++;
+                    setTimeout(typeText, 35);
+                }
+            }
+            typeText();
+        }
+    </script>
+</body>
+</html>
